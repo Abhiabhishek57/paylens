@@ -63,6 +63,24 @@ Evaluation Metrics
 - GitHub
 
 ## Status
-**Phase 0 — Project definition**
+**Phase 1 — Event ingestion and normalization**
 
-Next milestone: receive a small messy event dataset and produce a reproducible cluster-level decision with an audit record.
+The implemented vertical slice exposes `POST /api/events`. It validates a payment event, stores it in memory, and uses `eventId` as an idempotency key.
+
+### Run
+
+With Java 21 and Maven installed:
+
+```bash
+mvn spring-boot:run
+```
+
+### Try the endpoint
+
+```bash
+curl -i -X POST http://localhost:8080/api/events \
+  -H "Content-Type: application/json" \
+  -d '{"eventId":"evt_001","transactionId":"txn_001","amount":500,"currency":"INR","paymentMethod":"UPI","status":"FAILED","failureCode":"GATEWAY_TIMEOUT"}'
+```
+
+The first request returns `201 Created` with `ACCEPTED`. Repeating the same `eventId` returns `409 Conflict` with `DUPLICATE_EVENT`. Invalid fields return `400 Bad Request` with `VALIDATION_ERROR` and the affected field names.
